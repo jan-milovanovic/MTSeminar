@@ -1,0 +1,19 @@
+{
+  "name": "hackathon2021-main",
+  "version": "1.0.0",
+  "description": "Application for optimizing time use in ljubljana using lpp and bicikeLJ api",
+  "main": "host.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "realtime",
+    "bus",
+    "bicikelj"
+  ],
+  "author": "WaitLess",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}

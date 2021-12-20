@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+        <head>
+          <title>Mobility Ljubljana</title>
+          <link rel="icon" type="image/png" href="favicon.ico"/>
+
+            <div class="sidenav">
+                <button class="dropdown-btn" id="btnLPP">LPP 
+                  <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-container">
+                  <div class="searchPButton">
+                    <div class="form__group field">
+                      <input type="input" class="form__field" placeholder="Izberi linijo" name="name" id='bus' autocomplete="off" required />
+                    </div>
+                        <button type="button" class="button" id="getBtn">
+                          <span class="button__text">Izris poti</span>
+                        </button>
+                        <button type="button" class="button" id="getBtnAdd">
+                            <span class="button__text">Dodaj pot</span>
+                        </button>
+                        <button type="button" class="button" id="getBtnSosed">
+                          <span class="button__text">Sosednje postaje</span>
+                      </button>
+                  </button>
+                  </div>
+                </div>
+                <button class="dropdown-btn" id="btnBicikeLJ">BicikeLJ  <!-- to ni dropdown button -->
+                    <i class="fa fa-caret-down"></i>
+                </button>
+            </div>
+              
+              <div class="main">
+                <meta charset="utf-8">
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+                <link rel="stylesheet" href="styles.css"/>
+                <title>Map</title>
+                <script src="fetch.js" defer></script>
+            </head>
+
+
+            <body>
+                <div id="mapWrapper">
+                    <div id="map"></div>
+                    <section>
+                          <script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
+                        </div>
+                    </section>              
+                </div>
+              </div>
+
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script src="script.js"></script> 
+        </body>
+</html>
