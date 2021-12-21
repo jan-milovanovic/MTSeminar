@@ -29,19 +29,27 @@ async function markerOnClick(e)
 {
     stationID=e.target._tooltip._content.split("_")[0];
     getSchedule();
+    let counter = 0;
 
     while(schedule == "<b>PRIHODI AVTOBUSOV</b><br><br>") 
     {
-        console.log("waiting data");
         await sleep(100);
+        console.log("waiting data");
+
+        // TODO: test if this legit works
+        if (counter++ > 50) // 5 sekund
+            break;
     }
 
     if(dataMissing)
     {
-        alert("Podatki za postajo trenutno manjkajo. Poskustie znova.");
+        alert("Podatki za postajo trenutno manjkajo. Prosim poskusite znova.");
         return;
     }
 
+    // TODO: https://leafletjs.com/reference.html#popup
+    // bindpopup = L.popup
+    // najdi pozicijo markerja, nastavi offset, da ne bo bil oblacek 5 kilometrov nad markerjem
     e.target.bindPopup(schedule).openPopup();
     e.target.unbindPopup();
     schedule="<b>PRIHODI AVTOBUSOV</b><br><br>";
@@ -49,13 +57,14 @@ async function markerOnClick(e)
 }
 
 
+// TODO: bus disable on LPP button uncheck
 function updateRealTimeBusLocation()  // call once, infinite loop
 {
     fetch("/buses")
         .then(res => res.json())
         .then(data =>
             {
-                console.log(data.results);
+                //console.log(data.results);
                 layerGroupRealTime.clearLayers();
                 for (result in data.results)
                 {
@@ -88,81 +97,12 @@ async function callRealTimeBus()
 callRealTimeBus();
 
 
-// real time bus
-/*
-callRealTime();
-
-async function callRealTime()
-{
-    while(true)
-    {
-        updateBusLocation(); 
-        await sleep(1000);
-    }
-}
-
-function updateBusLocation()
-{
-    fetch("https://data.lpp.si/api/bus/bus-details")
-        .then(response => response.json())
-        .then(async data => 
-        {
-            console.log(data);
-        })
-        .catch(e => console.log("updateBusLocation: " + e))
-}
-*/
-
-
-
-/* Represents fake buses driving, latitude and longtitude are picked up from *route shape*
-
-busRTExample()
-
-async function busRTExampleDraw(busshape)
-{
-    while(true)
-    {
-        for(let i = 1; i < busshape.length; i++)
-        {
-            let busEx = new L.circle([busshape[i].lat, busshape[i].lng], {radius: 50}).addTo(map);
-            await sleep(500);
-            map.removeLayer(busEx);
-        }
-        for(let i = busshape.length-1; i > 0; i--)
-        {
-            let busEx = new L.circle([busshape[i].lat, busshape[i].lng], {radius: 50}).addTo(map);
-            await sleep(500);
-            map.removeLayer(busEx);
-        }
-    }
-}
-
-async function busRTExampleFetch(busNo)
-{
-    // if "let" instead of "var", there is an error..?
-    var buspot = await fetch('https://api.ontime.si/api/v1/lpp/route-shapes/?groups=' +  busNo)
-                        .then(res => res.json())
-                        .then(data => buspot = data)
-
-    busRTExampleDraw(buspot.results[0].trips[0].shape);
-}
-
-async function busRTExample()
-{
-    busRTExampleFetch(18);
-    busRTExampleFetch(14);
-    busRTExampleFetch(6);
-    busRTExampleFetch(27);
-    busRTExampleFetch(9);
-}
-*****************************************************************************************************/
-
 function cur_bus()
 {
     bus = document.getElementById('bus').value;
     activeBuses.add(bus);
 }
+
 
 const getDataSingular = () => fetch('/busStops')
     .then(response => response.json())
@@ -241,6 +181,8 @@ const getSchedule = () => fetch(`/stopSchedule/${stationID}`)
     .then(response => response.json())
     .then(data =>
         {
+           console.log(data.timetable);
+
             let allArrivalTimes = [];
             let routes = [];
             for (timetable in data.timetable)
@@ -248,19 +190,42 @@ const getSchedule = () => fetch(`/stopSchedule/${stationID}`)
                 if (activeBuses.has(data.timetable[timetable].group))
                 {
                     routes.push(data.timetable[timetable].name);
+
+                    const date = new Date(2021, 12, 21, 15, 0, 0);
+                    const dateHours = date.getHours();
+                    const dateMinutes = date.getMinutes();
+                    
+                    const dataArrival = data.timetable[timetable].arrivals;
+                    const arrivalLen = dataArrival.length;
+                    let arrivalIndex; // if null, no routes
+
+                    // find arrival index, where first bus arrives after our current time
+                    for (arrival in dataArrival)
+                    {
+                        const dataH = dataArrival[arrival].hour;
+                        const dataM = dataArrival[arrival].minute;
+
+                        if (dataH > dateHours || dataH == dateHours && dataM > dateMinutes)
+                        { arrivalIndex = parseInt(arrival); break; }  // arrivalIndex = index za naslednji avtobus
+                    }
+
+                    // get up to 5 upcoming bus arrival times
                     let arrivalTimes = [];
 
-                    for (arrival in data.timetable[timetable].arrivals)
+                    for (let i = 0; i < 5; i++)
                     {
-                        // TODO: HERE (fetch 1 stop before the hour and up to 1 hour ahead) -- add UI with full schedule
-                        let hour = data.timetable[timetable].arrivals[arrival].hour;
-                        if (hour < 10) { hour = 0 + "" + hour; }
+                        if (arrivalIndex+i < arrivalLen)
+                        {
+                            let hour = dataArrival[arrivalIndex+i].hour;
+                            let minute = dataArrival[arrivalIndex+i].minute;
 
-                        let minute = data.timetable[timetable].arrivals[arrival].minute;
-                        if (minute < 10) { minute = 0 + "" + minute; }
-
-                        arrivalTimes.push(hour + ":" + minute);
+                            if (hour < 10) { hour = 0 + "" + hour; }
+                            if (minute < 10) { minute = 0 + "" + minute; }
+    
+                            arrivalTimes.push(hour + ":" + minute);
+                        }
                     }
+
                     allArrivalTimes.push(arrivalTimes);
                 };
             }    
