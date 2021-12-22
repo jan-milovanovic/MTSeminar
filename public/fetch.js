@@ -15,11 +15,14 @@ busInfo.bindPopup("<b>registracija:</b> LJ-LPP-439" +
 
 
 // popup anchor => point from which the popup should open relative to the iconAnchor
-var leafIcon = L.Icon.extend({ options: { iconSize: [22,33], popupAnchor: [-3, -76] } }); 
-var greenIcon = new leafIcon({ iconUrl: 'Untitled-1.svg' });
-var greenIcon2 = new leafIcon({ iconUrl: 'Untitled-2.svg' });
+let iconSetting = L.Icon.extend({ options: { iconSize: [22,33], popupAnchor: [0, 0] } }); 
+//let nearStationIcon = L.Icon.extend({ options: { iconUrl: 'Untitled-1.svg', iconSize: [22, 33], popupAnchor: [-3, 76] } });
+let nearStationIcon = new iconSetting({ iconUrl: 'imgs/blackMarker.svg' });
+let stationIcon = new iconSetting({ iconUrl: 'imgs/greenMarker.svg' });
 
-const busIcon = new L.Icon({ iconUrl: 'bus-icon.svg', iconSize: [30, 30] });
+const busIcon = new L.Icon({ iconUrl: 'imgs/bus-icon.svg', iconSize: [20, 20] });
+// TODO: change url to wanted icon
+const busRotationIcon = new L.Icon({ iconUrl: 'imgs/bus-icon.svg', iconSize: [30, 30], opacity: 0.6 });
 
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -36,7 +39,6 @@ async function markerOnClick(e)
         await sleep(100);
         console.log("waiting data");
 
-        // TODO: test if this legit works
         if (counter++ > 50) // 5 sekund
             break;
     }
@@ -47,9 +49,6 @@ async function markerOnClick(e)
         return;
     }
 
-    // TODO: https://leafletjs.com/reference.html#popup
-    // bindpopup = L.popup
-    // najdi pozicijo markerja, nastavi offset, da ne bo bil oblacek 5 kilometrov nad markerjem
     e.target.bindPopup(schedule).openPopup();
     e.target.unbindPopup();
     schedule="<b>PRIHODI AVTOBUSOV</b><br><br>";
@@ -68,25 +67,30 @@ function updateRealTimeBusLocation()  // call once, infinite loop
                 layerGroupRealTime.clearLayers();
                 for (result in data.results)
                 {
-                    // TODO: dodaj bus ikonco za busek (can do rotation)
-                    // circle over circle, da ikona ostane centrirana?
-                    // potrebno narediti 2x circlemarker... optimizacija??
+                    const resultLat = data.results[result].lat;
+                    const resultLng = data.results[result].lng;
+                    const resultRotation = parseInt(data.results[result].rotation);
 
-                    // test circleMarker (setLatLng klice event move)
-                    // namesto da za vsako izpraznemo layer in ga naredimo na novo??
-                    
-                    //let busLocation = new L.circle([data.results[result].lat, data.results[result].lng], {radius: 20, color: 'green', fillOpacity: 0.9,});
+                    console.log(resultRotation);
 
-                    // add marker side popup on hover to display register plate of bus
-                    let busLocation = new L.marker([data.results[result].lat, data.results[result].lng], {icon: busIcon});
-                    busLocation.addTo(layerGroupRealTime);
+                    // add register plate on hover?
+                    // npm install leaflet-rotatedmarker ne deluje (bottom)
+                    // https://github.com/bbecquet/Leaflet.RotatedMarker#api
+                    //let busRotationLocation = new L.marker([resultLat, resultLng], {icon: busRotationIcon});
+                    let busLocation = new L.marker([resultLat, resultLng], {icon: busIcon});
+
+                    busRotationLocation.addTo(layerGroupRealTime);
+                    //busLocation.addTo(layerGroupRealTime);
                 }
             })
         .catch(e => console.log("Error : " + e))
 }
 
+
 async function callRealTimeBus()
 {
+    // layerGroupRealTime ima cudno razporejen layer zato je tezko narediti optimalno??
+    //setBusLocations(); 
     while(true)
     {
         updateRealTimeBusLocation();
@@ -116,7 +120,7 @@ const getDataSingular = () => fetch('/busStops')
             { 
                 if (data.results[result].route_groups.includes(bus))
                 {   
-                    let marker = new L.marker([data.results[result].lat,data.results[result].lng],{icon: greenIcon2}).on('click', markerOnClick).addTo(layerGroup)
+                    let marker = new L.marker([data.results[result].lat,data.results[result].lng],{icon: stationIcon}).on('click', markerOnClick).addTo(layerGroup)
                     marker.bindTooltip(data.results[result].stop_id + "_" + data.results[result].name);
                     markerList.push(marker);
                 }
@@ -133,7 +137,7 @@ const getDataMultiple = () => fetch('/busStops')
             { 
                 if (data.results[result].route_groups.includes(bus))
                 {   
-                    let marker = new L.marker([data.results[result].lat,data.results[result].lng],{icon: greenIcon2}).on('click', markerOnClick).addTo(layerGroup)
+                    let marker = new L.marker([data.results[result].lat,data.results[result].lng],{icon: stationIcon}).on('click', markerOnClick).addTo(layerGroup)
                     marker.bindTooltip(data.results[result].stop_id + "_" + data.results[result].name);
                     markerList.push(marker);
                 }
@@ -295,7 +299,7 @@ const nearPostaje = async () => fetch(`/nearbyStations/${lat_min},${lat_max},${l
             for (buskee in data.results[postaja].route_groups)
                 activeBuses.add(data.results[postaja].route_groups[buskee])
 
-            L.marker([data.results[postaja].lat,data.results[postaja].lng],{icon: greenIcon}).addTo(layerGroup);
+            L.marker([data.results[postaja].lat,data.results[postaja].lng],{icon: nearStationIcon}).addTo(layerGroup);
         }
 
         for (let item of activeBuses.values())
