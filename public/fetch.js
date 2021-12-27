@@ -1,6 +1,4 @@
-// TODO: can we change type of map?
-// map with singular shade = singular route color
-
+// TODO: implement bus reporting
 // TODO: Remove when realtime buses are implemented
 let busInfo = new L.circle([46.051318465073795, 14.479674887201202], {radius: 20, color: "black", fillOpacity: 0.8}).addTo(map);
 busInfo.bindPopup("<b>registracija:</b> LJ-LPP-439" +
@@ -79,8 +77,8 @@ function updateRealTimeBusLocation()  // call once, infinite loop
                     //let busRotationLocation = new L.marker([resultLat, resultLng], {icon: busRotationIcon});
                     let busLocation = new L.marker([resultLat, resultLng], {icon: busIcon});
 
-                    busRotationLocation.addTo(layerGroupRealTime);
-                    //busLocation.addTo(layerGroupRealTime);
+                    //busRotationLocation.addTo(layerGroupRealTime);
+                    busLocation.addTo(layerGroupRealTime);
                 }
             })
         .catch(e => console.log("Error : " + e))
