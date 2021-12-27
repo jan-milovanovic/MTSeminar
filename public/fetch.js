@@ -21,7 +21,7 @@ let stationIcon = new iconSetting({ iconUrl: 'imgs/greenMarker.svg' });
 const busIcon = new L.Icon({ iconUrl: 'imgs/bus-icon.svg', iconSize: [20, 20] });
 // TODO: change url to wanted icon
 const busRotationIcon = new L.Icon({ iconUrl: 'imgs/bus-icon.svg', iconSize: [30, 30], opacity: 0.6 });
-
+let running = false;
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
@@ -69,7 +69,7 @@ function updateRealTimeBusLocation()  // call once, infinite loop
                     const resultLng = data.results[result].lng;
                     const resultRotation = parseInt(data.results[result].rotation);
 
-                    console.log(resultRotation);
+                  //  console.log(resultRotation);
 
                     // add register plate on hover?
                     // npm install leaflet-rotatedmarker ne deluje (bottom)
@@ -89,11 +89,12 @@ async function callRealTimeBus()
 {
     // layerGroupRealTime ima cudno razporejen layer zato je tezko narediti optimalno??
     //setBusLocations(); 
-    while(true)
+    while(this.running)
     {
         updateRealTimeBusLocation();
-        await sleep(3000);
+        await sleep(3000);  
     }
+    layerGroupRealTime.clearLayers();
 }
 
 callRealTimeBus();
@@ -310,7 +311,10 @@ const nearPostaje = async () => fetch(`/nearbyStations/${lat_min},${lat_max},${l
     })
     .catch(e => console.log(e));
 
-
+function runningSwap()
+{
+    this.running = !this.running;
+}
 // clear map when not LPP button is not active
 function setBusData()
 {
@@ -347,6 +351,7 @@ const getBtnLpp = document.getElementById('btnLPP');
 const getBtn = document.getElementById('getBtn');
 const getBtnAdd = document.getElementById('getBtnAdd');
 const getBtnSosed = document.getElementById('getBtnSosed');
+const liveBtn = document.getElementById('liveBtn');
 
 let dataMissing=true;
 let schedule="<b>PRIHODI AVTOBUSOV</b><br><br>";
@@ -366,6 +371,10 @@ getBtnAdd.addEventListener('click', cur_bus);
 getBtnAdd.addEventListener('click', getDataMultiple);
 getBtnAdd.addEventListener('click', getShape1);
 getBtnAdd.addEventListener('click', getShape2);
+liveBtn.addEventListener('click', runningSwap);
+liveBtn.addEventListener('click', callRealTimeBus);
+
+
 
 getBtnLpp.addEventListener('click', setBusData);
 
