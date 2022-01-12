@@ -94,6 +94,31 @@ function cur_bus()
 }
 
 
+function displaySingleRoute()
+{
+    drawnBusLines = [];
+    cur_bus();
+    drawnBusLines.push(bus);
+
+    getDataSingular();
+    getShape1();
+    getShape2();
+}
+
+function displayMultipleRoutes()
+{
+    cur_bus();  // refresh bus value
+
+    if(!drawnBusLines.includes(bus))
+    {
+        drawnBusLines.push(bus);
+        getDataMultiple();
+        getShape1();
+        getShape2();
+    }
+}
+
+
 const getDataSingular = () => fetch('/busStops')
     .then(response => response.json())
     .then(data =>
@@ -291,10 +316,10 @@ const nearPostaje = async () => fetch(`/nearbyStations/${lat_min},${lat_max},${l
 
         for (let item of activeBuses.values())
         {
-            await sleep(700)
+            await sleep(700);
             bus=item;
-            getShape1()
-            getShape2()
+            getShape1();
+            getShape2();
         } 
     })
     .catch(e => console.log(e));
@@ -328,7 +353,7 @@ function success(pos)
     lat_min = pos.coords.latitude - 0.0067
     lng_max = pos.coords.longitude + 0.0067
     lng_min = pos.coords.longitude - 0.0067
-    L.marker([pos.coords.latitude,pos.coords.longitude]).bindPopup("Tvoja Lokacija").openPopup().addTo(map);
+    L.marker([pos.coords.latitude,pos.coords.longitude]).bindPopup("Vaša Lokacija").openPopup().addTo(map);
 
     getBtnSosed.addEventListener('click', nearPostaje);
 }
@@ -351,19 +376,11 @@ let bicikeljRunning = false;
 let lppRunning = false;
 let markerList = [];
 
-getBtn.addEventListener('click', cur_bus);
-getBtn.addEventListener('click', getDataSingular);
-getBtn.addEventListener('click', getShape1);
-getBtn.addEventListener('click', getShape2);
-getBtnAdd.addEventListener('click', cur_bus);
-getBtnAdd.addEventListener('click', getDataMultiple);
-getBtnAdd.addEventListener('click', getShape1);
-getBtnAdd.addEventListener('click', getShape2);
+let drawnBusLines = []; // all bus lines currently drawn (prevent repetition)
+
+getBtn.addEventListener('click', displaySingleRoute);
+getBtnAdd.addEventListener('click', displayMultipleRoutes);
 liveBtn.addEventListener('click', runningSwap);
 liveBtn.addEventListener('click', callRealTimeBus);
-
-
-
 getBtnLpp.addEventListener('click', setBusData);
-
 getBtnBicikelj.addEventListener('click', getBikes);
