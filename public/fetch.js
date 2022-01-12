@@ -1,16 +1,4 @@
 // TODO: implement bus reporting
-// TODO: Remove when realtime buses are implemented
-let busInfo = new L.circle([46.051318465073795, 14.479674887201202], {radius: 20, color: "black", fillOpacity: 0.8}).addTo(map);
-busInfo.bindPopup("<b>registracija:</b> LJ-LPP-439" +
-               "<br><b>pot:</b> KOLODVOR" + 
-               "<br><b>Kapaciteta:</b> 80" +
-               "<br><b>Zasedenost:</b> 32" +
-               "<br><b>Hitrost:</b> 53");
-               /* if its possible to display this data, then uncomment
-               "<br><br><b>Lokacija:</b> ZOO" +
-               "<br><b>Naslednja postaja:</b> Večna pot" +
-               "<br><b>Prihod do naslednje postaje:</b> 2 minuti");*/
-
 
 // popup anchor => point from which the popup should open relative to the iconAnchor
 let iconSetting = L.Icon.extend({ options: { iconSize: [22,33], popupAnchor: [0, 0] } }); 
@@ -54,7 +42,6 @@ async function markerOnClick(e)
 }
 
 
-// TODO: bus disable on LPP button uncheck
 function updateRealTimeBusLocation()  // call once, infinite loop
 {
     fetch("/buses")
@@ -194,9 +181,10 @@ const getSchedule = () => fetch(`/stopSchedule/${stationID}`)
                 {
                     routes.push(data.timetable[timetable].name);
 
-                    const date = new Date(2021, 12, 21, 15, 0, 0);
+                    const date = new Date();
                     const dateHours = date.getHours();
                     const dateMinutes = date.getMinutes();
+                    console.log(dateHours + ' : ' + dateMinutes);
                     
                     const dataArrival = data.timetable[timetable].arrivals;
                     const arrivalLen = dataArrival.length;
